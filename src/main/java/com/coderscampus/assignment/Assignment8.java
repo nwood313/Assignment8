@@ -1,10 +1,15 @@
 package com.coderscampus.assignment;
 
+import org.junit.Test;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -38,7 +43,7 @@ public class Assignment8 {
         int start, end;
         synchronized (i) {
             start = i.get();
-            end = i.addAndGet(1000);
+            end = i.addAndGet(100000);
 
             System.out.println("Starting to fetch records " + start + " to " + (end));
         }
@@ -56,6 +61,48 @@ public class Assignment8 {
                 });
         System.out.println("Done Fetching records " + start + " to " + (end));
         return newList;
+    }
+    @Test
+    public void getData () {
+
+        Assignment8 assignment = new Assignment8();
+        List<CompletableFuture<List<Integer>>> tasks = new ArrayList<>();
+        ExecutorService pool = Executors.newCachedThreadPool();
+        for (int i = 0; i <= 1000000; i++) {
+
+            CompletableFuture<List<Integer>> task =
+                    CompletableFuture.supplyAsync(() -> assignment.getNumbers(), pool);
+            tasks.add(task);
+            System.out.println(getNumbers());
+        }
+
+        pool.shutdown();
+
+        List<Integer> allNumbers = assignment.getNumbers();
+        CompletableFuture<Void> allTasks = CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0]));
+        allTasks.thenRun(() -> {
+            for (CompletableFuture<List<Integer>> task : tasks) {
+                try {
+                    List<Integer> numbersList = task.get();
+                    allNumbers.addAll(numbersList);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            countUniqueNumbers(allNumbers);
+        });
+    }
+
+    public void countUniqueNumbers(List<Integer> numbers) {
+        Map<Integer, Integer> countMap = new HashMap<>();
+
+        for (Integer number : numbers) {
+            countMap.put(number, countMap.getOrDefault(number, 0) + 1);
+        }
+
+        for (Map.Entry<Integer, Integer> entry : countMap.entrySet()) {
+            System.out.println(entry.getKey() + "=" + entry.getValue());
+        }
     }
 
 }
