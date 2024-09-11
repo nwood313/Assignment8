@@ -5,10 +5,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -26,6 +23,7 @@ public class Assignment8 {
                     .stream()
                     .map(n -> Integer.parseInt(n))
                     .collect(Collectors.toList());
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -43,7 +41,7 @@ public class Assignment8 {
         int start, end;
         synchronized (i) {
             start = i.get();
-            end = i.addAndGet(100000);
+            end = Math.min(i.addAndGet(10000), numbers.size()); // adjust end index
 
             System.out.println("Starting to fetch records " + start + " to " + (end));
         }
@@ -68,12 +66,11 @@ public class Assignment8 {
         Assignment8 assignment = new Assignment8();
         List<CompletableFuture<List<Integer>>> tasks = new ArrayList<>();
         ExecutorService pool = Executors.newCachedThreadPool();
-        for (int i = 0; i <= 1000000; i++) {
-
+        for (int i = 0; i <= 1000; i++) {
             CompletableFuture<List<Integer>> task =
                     CompletableFuture.supplyAsync(() -> assignment.getNumbers(), pool);
             tasks.add(task);
-            System.out.println(getNumbers());
+        //    System.out.println(getNumbers()); shows the numbers retrieved from output.txt
         }
 
         pool.shutdown();
