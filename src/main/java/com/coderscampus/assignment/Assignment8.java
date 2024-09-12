@@ -1,7 +1,5 @@
 package com.coderscampus.assignment;
 
-import org.junit.Test;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -34,7 +32,7 @@ public class Assignment8 {
      * of Integers. However, it can only return 1000 records at a time. You will
      * need to call this method 1,000 times in order to retrieve all 1,000,000
      * numbers from the list
-     * 
+     *
      * @return Integers from the parsed txt file, 1,000 numbers at a time
      */
     public List<Integer> getNumbers() {
@@ -60,35 +58,6 @@ public class Assignment8 {
         System.out.println("Done Fetching records " + start + " to " + (end));
         return newList;
     }
-    @Test
-    public void getData () {
-
-        Assignment8 assignment = new Assignment8();
-        List<CompletableFuture<List<Integer>>> tasks = new ArrayList<>();
-        ExecutorService pool = Executors.newCachedThreadPool();
-        for (int i = 0; i <= 1000; i++) {
-            CompletableFuture<List<Integer>> task =
-                    CompletableFuture.supplyAsync(() -> assignment.getNumbers(), pool);
-            tasks.add(task);
-        //    System.out.println(getNumbers()); shows the numbers retrieved from output.txt
-        }
-
-        pool.shutdown();
-
-        List<Integer> allNumbers = assignment.getNumbers();
-        CompletableFuture<Void> allTasks = CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0]));
-        allTasks.thenRun(() -> {
-            for (CompletableFuture<List<Integer>> task : tasks) {
-                try {
-                    List<Integer> numbersList = task.get();
-                    allNumbers.addAll(numbersList);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            countUniqueNumbers(allNumbers);
-        });
-    }
 
     public void countUniqueNumbers(List<Integer> numbers) {
         Map<Integer, Integer> countMap = new HashMap<>();
@@ -102,4 +71,30 @@ public class Assignment8 {
         }
     }
 
+    public static void main(String[] args) {
+        Assignment8 assignment = new Assignment8();
+        List<CompletableFuture<List<Integer>>> tasks = new ArrayList<>();
+        ExecutorService pool = Executors.newCachedThreadPool();
+        for (int i = 0; i <= 1000; i++) {
+            CompletableFuture<List<Integer>> task =
+                    CompletableFuture.supplyAsync(() -> assignment.getNumbers(), pool);
+            tasks.add(task);
+        }
+
+        pool.shutdown();
+
+        CompletableFuture<Void> allTasks = CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0]));
+        allTasks.thenRun(() -> {
+            List<Integer> allNumbers = new ArrayList<>();
+            for (CompletableFuture<List<Integer>> task : tasks) {
+                try {
+                    List<Integer> numbersList = task.get();
+                    allNumbers.addAll(numbersList);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            assignment.countUniqueNumbers(allNumbers);
+        });
+    }
 }
