@@ -1,5 +1,6 @@
 # Assignment 8 starter
 
+This assingment is about coding asynchronously using a provided template and a file to be read and processed. 
 
 This project is a maven project and slightly different than some previous projects because of that.
 
